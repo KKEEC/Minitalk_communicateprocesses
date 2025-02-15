@@ -18,17 +18,50 @@ int ft_atoi(char *str)
     }
     return (result);
 }
-void sigusr(int pid, char *message)
+
+void send_char(int pidval, char c)
 {
-    printf("%s \n", message);
-    kill(pid, SIGUSR1);
+    int i;
+
+    i = 0;
+    while(i < 8)
+    {
+        if ((c >> i) & 1)
+            kill(pidval, SIGUSR1);
+        else
+            kill(pidval, SIGUSR2);
+        usleep(500);
+        i++;
+    }
+}   
+
+void send_string(int pidval, const char *message)
+{
+    int i;
+
+    i = 0;
+    while(message[i] != '\0')
+    {
+        send_char(pidval, message[i]);
+        i++;
+    }
+    send_char(pidval, '\0');
 }
+
 
 int main(int argc, char *argv[])
 {
     int pidval;
+
+    if (argc != 3)
+    {
+        printf("Usage: %s <PID> <message>\n", argv[0]);
+        return 1;
+    }
+
     pidval = ft_atoi(argv[1]);
     char *message = argv[2];
-    printf("value of pid is %d\n", pidval);
-    sigusr(pidval, message);
+
+    send_string(pidval, message);
+    //kill(pidval, SIGINT);
 }
